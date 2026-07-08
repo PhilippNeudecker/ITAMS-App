@@ -1,12 +1,10 @@
 import { h } from 'vue'
 import type { ColumnDef } from '@tanstack/vue-table'
 
-// interface Payment {
-//   id: string
-//   amount: number
-//   status: 'pending' | 'processing' | 'success' | 'failed'
-//   email: string
-// }
+const warrantyBadgeVariant = (date: any) => {
+  // Deine Logik für die Variante (z.B. 'destructive', 'outline', etc.)
+  return 'outline'
+}
 
 export const data: any[] = [
   {
@@ -807,6 +805,7 @@ export const data: any[] = [
     "warranty_notify_days_before": 60
   }
 ]
+
 export const columns: ColumnDef<any>[] = [
   {
     accessorKey: 'asset_label',
@@ -831,8 +830,43 @@ export const columns: ColumnDef<any>[] = [
     },
   },
   {
+    accessorKey: 'category',
+    header: () => h('div', { class: 'font-medium' }, 'Kategorie'),
+    cell: ({ row }) => {
+      return h('div', {  }, row.getValue('category'))
+    },
+  },
+  {
+    accessorKey: 'name',
+    header: () => h('div', { class: 'font-medium' }, 'Status'),
+    cell: ({ row }) => {
+      return h('div', {  }, row.getValue('name'))
+    },
+  },
+  {
+    accessorKey: 'name',
+    header: () => h('div', { class: 'font-medium' }, 'Standort'),
+    cell: ({ row }) => {
+      return h('div', {  }, row.getValue('name'))
+    },
+  },
+  {
+    accessorKey: 'name',
+    header: () => h('div', { class: 'font-medium' }, 'Hersteller'),
+    cell: ({ row }) => {
+      return h('div', {  }, row.getValue('name'))
+    },
+  },
+  {
+    accessorKey: 'name',
+    header: () => h('div', { class: 'font-medium' }, 'Zugewiesen an'),
+    cell: ({ row }) => {
+      return h('div', {  }, row.getValue('name'))
+    },
+  },
+  {
     accessorKey: 'warranty_end_date',
-    header: () => h('div', { class: 'font-medium text-primary' }, 'Garantieende'),
+    header: () => h('div', { class: 'font-medium' }, 'Garantieende'),
     cell: ({ row }) => {
       return h('div', {  }, row.getValue('warranty_end_date'))
     },

@@ -19,6 +19,7 @@ import NavProjects from "@/components/NavProjects.vue"
 import NavUser from "@/components/NavUser.vue"
 import TeamSwitcher from "@/components/TeamSwitcher.vue"
 import SidebarLogo from "@/components/SidebarLogo.vue"
+import { route } from 'ziggy-js';
 
 import {
   Sidebar,
@@ -50,11 +51,11 @@ const data = {
       items: [
         {
           title: "Übersicht",
-          url: "/assets",
+          url: route('assets.index'),
         },
         {
             title: "Tags",
-            url: "/assets/tags",
+            url: route('assets.tags.index'),
         },
         {
           title: "Bericht",

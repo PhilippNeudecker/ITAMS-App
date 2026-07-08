@@ -1,6 +1,6 @@
-import { h } from 'vue'
+import { resolveComponent, h } from 'vue'
 import type { ColumnDef } from '@tanstack/vue-table'
-import { PhCheck, PhX } from '@phosphor-icons/vue'
+import { CheckIcon, XIcon } from 'lucide-vue-next';
 
 // interface Payment {
 //   id: string
@@ -64,7 +64,7 @@ export const data: any[] = [
         "name": "Virtuelle Maschine",
         "description": "Virtuelle Serverinstanz",
         "color": "#B91C1C",
-        "is_active": true
+        "is_active": false
     },
     {
         "business_code": "NET",
@@ -256,13 +256,10 @@ export const columns: ColumnDef<any>[] = [
         accessorKey: 'is_active',
         header: () => h('div', { class: 'font-medium text-primary' }, 'Aktiv'),
         cell: ({ row }) => {
-            if (row.getValue('is_active') == true) {
-                return h('i', { size: 32, class: 'ph ph-check text-green-600' })
-                // <PhCheck : size = "32" class="text-green-600" />
-            } else {
-                return h('i', { size: 32, class: 'ph ph-x text-red-600' })
-                // <PhX : size = "32" class="text-red-600" />
-            }
+            const isActive = row.getValue('is_active');
+            return h(isActive ? CheckIcon : XIcon, {
+                class: isActive ? 'justify-self-center text-green-600 h-5 w-5' : 'justify-self-center text-red-600 h-5 w-5',
+            });
         },
     }
 ]
