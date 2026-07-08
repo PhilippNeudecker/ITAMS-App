@@ -1,0 +1,12 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "paths": {
+      "@/*": ["./resources/js/*"],
+      "~img/*": ["./resources/img/*"]
+    }
+  },
+  "include": ["resources/js/**/*.ts", "resources/js/**/*.vue"],
+  "exclude": ["node_modules", "public", "vendor"]
+}
