@@ -33,10 +33,22 @@ Route::post('/logout', [AuthController::class, 'logout'])
             Route::get('/',        [TagController::class, 'index'])->name('index');
             Route::get('/create',  [TagController::class, 'create'])->name('create');
             Route::post('/',       [TagController::class, 'store'])->name('store');
+            Route::delete('/',     [TagController::class, 'bulkDestroy'])->name('bulk-destroy');
             Route::get('/{tag}',   [TagController::class, 'show'])->name('show');
             Route::get('/{tag}/edit',  [TagController::class, 'edit'])->name('edit');
             Route::patch('/{tag}',     [TagController::class, 'update'])->name('update');
             Route::delete('/{tag}',    [TagController::class, 'destroy'])->name('destroy');
+        });
+
+        // Kategorien
+        Route::prefix('categories')->name('categories.')->group(function () {
+            Route::get('/',              [CategoryController::class, 'index'])->name('index');
+            Route::get('/create',        [CategoryController::class, 'create'])->name('create');
+            Route::post('/',             [CategoryController::class, 'store'])->name('store');
+            Route::get('/{category}',    [CategoryController::class, 'show'])->name('show');
+            Route::get('/{category}/edit',   [CategoryController::class, 'edit'])->name('edit');
+            Route::patch('/{category}',      [CategoryController::class, 'update'])->name('update');
+            Route::delete('/{category}',     [CategoryController::class, 'destroy'])->name('destroy');
         });
 
         Route::get('/',        [AssetController::class, 'index'])->name('index');
@@ -48,16 +60,6 @@ Route::post('/logout', [AuthController::class, 'logout'])
         Route::delete('/{asset}',   [AssetController::class, 'destroy'])->name('destroy');
     });
 
-    // Kategorien
-    Route::prefix('categories')->name('categories.')->group(function () {
-        Route::get('/',              [CategoryController::class, 'index'])->name('index');
-        Route::get('/create',        [CategoryController::class, 'create'])->name('create');
-        Route::post('/',             [CategoryController::class, 'store'])->name('store');
-        Route::get('/{category}',    [CategoryController::class, 'show'])->name('show');
-        Route::get('/{category}/edit',   [CategoryController::class, 'edit'])->name('edit');
-        Route::patch('/{category}',      [CategoryController::class, 'update'])->name('update');
-        Route::delete('/{category}',     [CategoryController::class, 'destroy'])->name('destroy');
-    });
 
     // Standorte
     Route::prefix('locations')->name('locations.')->group(function () {

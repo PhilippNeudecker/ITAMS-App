@@ -5,12 +5,12 @@ import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import DataTable from "@/components/data-table/data-table.vue";
-import { buildColumns } from "@/Pages/AssetTags/columns";
+import { buildColumns } from "@/Pages/AssetCategories/columns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { PlusIcon, SearchIcon, Trash2Icon, SlidersHorizontalIcon, FileSearchIcon, PenIcon, CopyIcon, RefreshCcwIcon } from 'lucide-vue-next';
 import { route } from 'ziggy-js';
-import TagFormModal, { type TagModalMode } from '@/Pages/AssetTags/TagFormModal.vue';
+import CategoryFormModal, { type CategoryModalMode } from '@/Pages/AssetCategories/CategoryFormModal.vue';
 
 interface Paginator<T> {
     data: T[];
@@ -22,7 +22,7 @@ interface Paginator<T> {
 }
 
 const props = defineProps<{
-    tags: Paginator<any>;
+    categories: Paginator<any>;
     filters: {
         search?: string;
         active_only?: boolean;
@@ -39,10 +39,10 @@ const onSearch = () => {
 };
 
 const applyFilters = () => {
-    router.get(route('assets.tags.index'), {
+    router.get(route('assets.categories.index'), {
         search: search.value || undefined,
         active_only: activeOnly.value === 'active' || undefined,
-    }, { preserveState: true, replace: true, only: ['tags', 'filters'] });
+    }, { preserveState: true, replace: true, only: ['Categories', 'filters'] });
 };
 
 const resetFilters = () => {
@@ -90,7 +90,7 @@ const toggleSelected = (id: number, value: boolean) => {
     selectedIds.value = next;
 };
 const isAllSelected = (): boolean | 'indeterminate' => {
-    const rows = props.tags.data;
+    const rows = props.categories.data;
     if (!rows.length) return false;
     if (rows.every(t => selectedIds.value.has(t.id))) return true;
     if (rows.some(t => selectedIds.value.has(t.id))) return 'indeterminate';
@@ -98,96 +98,96 @@ const isAllSelected = (): boolean | 'indeterminate' => {
 };
 const toggleAll = (value: boolean) => {
     const next = new Set(selectedIds.value);
-    props.tags.data.forEach(t => value ? next.add(t.id) : next.delete(t.id));
+    props.categories.data.forEach(t => value ? next.add(t.id) : next.delete(t.id));
     selectedIds.value = next;
 };
 
-const selectedTags = computed(() => props.tags.data.filter(t => selectedIds.value.has(t.id)));
-const singleSelectedTag = computed(() => selectedTags.value.length === 1 ? selectedTags.value[0] : null);
+const selectedCategories = computed(() => props.categories.data.filter(t => selectedIds.value.has(t.id)));
+const singleSelectedCategory = computed(() => selectedCategories.value.length === 1 ? selectedCategories.value[0] : null);
 
 const modalOpen = ref(false);
-const modalMode = ref<TagModalMode>('create');
-const modalTag = ref<any | null>(null);
+const modalMode = ref<CategoryModalMode>('create');
+const modalCategory = ref<any | null>(null);
 
-function findTag(id: number): any | null {
-    return props.tags.data.find(t => t.id === id) ?? null;
+function findCategory(id: number): any | null {
+    return props.categories.data.find(t => t.id === id) ?? null;
 }
 
-function openModal(mode: TagModalMode, tag: any | null) {
+function openModal(mode: CategoryModalMode, Category: any | null) {
     modalMode.value = mode;
-    modalTag.value = tag;
+    modalCategory.value = Category;
     modalOpen.value = true;
 }
 
 const onCreate = () => openModal('create', null);
 const onView = (id?: number) => {
-    const tag = id ? findTag(id) : singleSelectedTag.value;
-    if (tag) openModal('view', tag);
+    const Category = id ? findCategory(id) : singleSelectedCategory.value;
+    if (Category) openModal('view', Category);
 };
 const onEdit = (id?: number) => {
-    const tag = id ? findTag(id) : singleSelectedTag.value;
-    if (tag) openModal('edit', tag);
+    const Category = id ? findCategory(id) : singleSelectedCategory.value;
+    if (Category) openModal('edit', Category);
 };
 const onCopy = (id?: number) => {
-    const tag = id ? findTag(id) : singleSelectedTag.value;
-    if (tag) openModal('copy', tag);
+    const Category = id ? findCategory(id) : singleSelectedCategory.value;
+    if (Category) openModal('copy', Category);
 };
 
-function onRowClick(tag: any) {
-    openModal('view', tag);
+function onRowClick(Category: any) {
+    openModal('view', Category);
 }
 
 function afterSave() {
-    router.reload({ only: ['tags'], preserveScroll: true });
+    router.reload({ only: ['Categories'], preserveScroll: true });
 }
 
 function deleteOne(id: number) {
-    const tag = findTag(id);
-    if (!tag) return;
-    performDelete([tag]);
+    const Category = findCategory(id);
+    if (!Category) return;
+    performDelete([Category]);
 }
 
 const onDelete = () => {
-    if (!selectedTags.value.length) return;
-    performDelete(selectedTags.value);
+    if (!selectedCategories.value.length) return;
+    performDelete(selectedCategories.value);
 };
 
-function performDelete(tags: any[]) {
-    const inUse = tags.filter(t => (t.assets_count ?? 0) > 0);
+function performDelete(Categories: any[]) {
+    const inUse = Categories.filter(t => (t.assets_count ?? 0) > 0);
     if (inUse.length) {
-        alert(`Folgende Tags werden noch von Assets verwendet und können nicht gelöscht werden: ${inUse.map(t => t.name).join(', ')}`);
+        alert(`Folgende Kategorien werden noch von Assets verwendet und können nicht gelöscht werden: ${inUse.map(t => t.name).join(', ')}`);
         return;
     }
 
-    const message = tags.length === 1
-        ? `Möchten Sie den Tag "${tags[0].name}" wirklich löschen?`
-        : `Möchten Sie ${tags.length} Tags wirklich löschen?`;
+    const message = Categories.length === 1
+        ? `Möchten Sie die Kategorie "${Categories[0].name}" wirklich löschen?`
+        : `Möchten Sie ${Categories.length} Kategorien wirklich löschen?`;
 
     if (!confirm(message)) return;
 
-    const ids = tags.map(t => t.id);
+    const ids = Categories.map(t => t.id);
 
     if (ids.length === 1) {
-        router.delete(route('assets.tags.destroy', ids[0]), {
+        router.delete(route('assets.categories.destroy', ids[0]), {
             preserveScroll: true,
             preserveState: true,
-            only: ['tags'],
+            only: ['Categories'],
             onSuccess: () => selectedIds.value.delete(ids[0]),
         });
         return;
     }
 
-    router.delete(route('assets.tags.bulk-destroy'), {
+    router.delete(route('assets.categories.bulk-destroy'), {
         data: { ids },
         preserveScroll: true,
         preserveState: true,
-        only: ['tags'],
+        only: ['Categories'],
         onSuccess: () => { selectedIds.value = new Set(); },
     });
 }
 
 const onRefresh = () => {
-    router.reload({ only: ['tags', 'filters'], preserveScroll: true, preserveState: true });
+    router.reload({ only: ['Categories', 'filters'], preserveScroll: true, preserveState: true });
 };
 
 const columns = computed(() => buildColumns({
@@ -203,30 +203,30 @@ const columns = computed(() => buildColumns({
 </script>
 
 <template>
-    <DashboardLayout :breadcrumbs="[{ name: 'Assets', href: route('assets.index') }, { name: 'Tags', href: route('assets.tags.index') }]">
+    <DashboardLayout :breadcrumbs="[{ name: 'Assets', href: route('assets.index') }, { name: 'Kategorien', href: route('assets.categories.index') }]">
         <div class="flex flex-col gap-2 h-full min-h-0">
             <!-- Actions -->
             <div class="flex justify-between rounded-md border border-destructive/30 bg-destructive/5 px-4 py-2 shrink-0">
                 <div class="flex items-center gap-2">
-                    <Button variant="outline" class="text-green-500" @click="onCreate()" title="Neuer Tag">
+                    <Button variant="outline" class="text-green-500" @click="onCreate()" title="Neuer Category">
                         <PlusIcon class="w-4 h-4" />
                         <!-- <div class="pe-1">Neu</div> -->
                     </Button>
                     <Separator orientation="vertical" />
-                    <Button variant="outline" class="text-gray-500" :disabled="!singleSelectedTag" @click="onView()" title="Anzeigen">
+                    <Button variant="outline" class="text-gray-500" :disabled="!singleSelectedCategory" @click="onView()" title="Anzeigen">
                         <FileSearchIcon class="w-4 h-4" />
                         <!-- <div class="pe-1">Anzeigen</div> -->
                     </Button>
-                    <Button variant="outline" class="text-gray-500" :disabled="!singleSelectedTag" @click="onEdit()" title="Bearbeiten">
+                    <Button variant="outline" class="text-gray-500" :disabled="!singleSelectedCategory" @click="onEdit()" title="Bearbeiten">
                         <PenIcon class="w-4 h-4" />
                         <!-- <div class="pe-1">Bearbeiten</div> -->
                     </Button>
-                    <Button variant="outline" class="text-gray-500" :disabled="!singleSelectedTag" @click="onCopy()" title="Kopieren">
+                    <Button variant="outline" class="text-gray-500" :disabled="!singleSelectedCategory" @click="onCopy()" title="Kopieren">
                         <CopyIcon class="w-4 h-4" />
                         <!-- <div class="pe-1">Kopieren</div> -->
                     </Button>
                     <Separator orientation="vertical" />
-                    <Button variant="outline" class="text-red-500" :disabled="!selectedTags.length" @click="onDelete()" title="Löschen">
+                    <Button variant="outline" class="text-red-500" :disabled="!selectedCategories.length" @click="onDelete()" title="Löschen">
                         <Trash2Icon class="w-4 h-4" />
                         <!-- <div class="pe-1">Löschen</div> -->
                     </Button>
@@ -268,10 +268,10 @@ const columns = computed(() => buildColumns({
             </div>
 
             <div class="flex-1 min-h-0">
-                <DataTable :columns="columns" :data="tags.data" :loading="isLoading" @row-click="onRowClick" />
+                <DataTable :columns="columns" :data="categories.data" :loading="isLoading" @row-click="onRowClick" />
             </div>
         </div>
 
-        <TagFormModal v-model:open="modalOpen" :mode="modalMode" :tag="modalTag" @saved="afterSave" />
+        <CategoryFormModal v-model:open="modalOpen" :mode="modalMode" :Category="modalCategory" @saved="afterSave" />
     </DashboardLayout>
 </template>

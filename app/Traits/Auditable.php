@@ -46,7 +46,7 @@ trait Auditable
     {
         // Auth user has employee_id set after LDAP login (see LdapAuthService)
         $user = auth()->user();
-        return $user?->employee_id ?? 'SYSTEM';
+        return $user?->employee_id ?? 'ADMIN';
     }
 
     /**

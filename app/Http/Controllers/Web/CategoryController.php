@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -14,12 +15,13 @@ class CategoryController extends Controller
     public function index(Request $request): Response
     {
         $categories = Category::with('parent')
+            ->withCount('assets')
             ->when($request->search, fn($q, $s) => $q->where('name', 'like', "%{$s}%"))
             ->orderBy('name')
             ->paginate(25)
             ->withQueryString();
 
-        return Inertia::render('Categories/Index', [
+        return Inertia::render('AssetCategories/Index', [
             'categories' => $categories,
             'filters'    => $request->only(['search']),
         ]);
@@ -27,14 +29,19 @@ class CategoryController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('Categories/Create', [
+        return Inertia::render('AssetCategories/Create', [
             'parents' => Category::whereNull('parent_category_id')->orderBy('name')->get(),
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
-        return redirect()->route('categories.index')->with('success', 'Kategorie erstellt.');
+        $data = $this->validated($request);
+        $data['is_active'] = $data['is_active'] ?? true;
+
+        Tag::create($data);
+
+        return redirect()->route('assets.tags.index')->with('success', 'Tag erstellt.');
     }
 
     public function show(Category $category): Response

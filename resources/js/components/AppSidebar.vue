@@ -58,6 +58,10 @@ const data = {
             url: route('assets.tags.index'),
         },
         {
+            title: "Kategorien",
+            url: route('assets.categories.index'),
+        },
+        {
           title: "Bericht",
           url: "#",
         },
