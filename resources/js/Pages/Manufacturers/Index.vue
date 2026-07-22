@@ -5,11 +5,12 @@ import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import DataTable from "@/components/data-table/data-table.vue";
-import { buildColumns } from "@/Pages/AssetCategories/columns";
+import { buildColumns } from "@/Pages/Manufacturers/columns";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { PlusIcon, SearchIcon, Trash2Icon, SlidersHorizontalIcon, FileSearchIcon, PenIcon, CopyIcon, RefreshCcwIcon } from 'lucide-vue-next';
 import { route } from 'ziggy-js';
-import FormModal from '@/Pages/AssetCategories/CategoryFormModal.vue';
+import FormModal from '@/Pages/Manufacturers/FormModal.vue';
 import GenericDeleteModal from '@/components/modals/GenericDeleteModal.vue';
 import { type Paginator } from '@/interfaces/Pagination';
 import { type ModalMode } from '@/interfaces/ModalMode';
@@ -35,10 +36,10 @@ const onSearch = () => {
 };
 
 const applyFilters = () => {
-    router.get(route('assets.categories.index'), {
+    router.get(route('assets.manufacturers.index'), {
         search: search.value || undefined,
         active_only: activeOnly.value === 'active' || undefined,
-    }, { preserveState: true, replace: true, only: ['assets.categories', 'filters'] });
+    }, { preserveState: true, replace: true, only: ['manufacturers', 'filters'] });
 };
 
 const resetFilters = () => {
@@ -120,12 +121,12 @@ function openDeleteModal(data: any[] = selectedDatas.value) {
 
     const inUse = data.filter(t => (t.assets_count ?? 0) > 0);
     if (inUse.length) {
-        alert(`Folgende Status Definitionen werden noch von Assets verwendet und können nicht gelöscht werden: ${inUse.map(t => t.name).join(', ')}`);
+        alert(`Folgende Hersteller werden noch von Assets verwendet und können nicht gelöscht werden: ${inUse.map(t => t.name).join(', ')}`);
         return;
     }
     deleteModalDescription = data.length === 1
-        ? `Möchten Sie die Status Definition "${data[0].name}" wirklich löschen?`
-        : `Möchten Sie ${data.length} Status Definitionen wirklich löschen?`;
+        ? `Möchten Sie den Hersteller "${data[0].name}" wirklich löschen?`
+        : `Möchten Sie ${data.length} Hersteller wirklich löschen?`;
 
     deleteModalOpen.value = true;
 }
@@ -134,18 +135,18 @@ function handleDeleteSuccess(datas: any[] = selectedDatas.value) {
     const ids = datas.map(t => t.id);
 
     if (ids.length === 1) {
-        router.delete(route('assets.categories.destroy', ids[0]), {
+        router.delete(route('assets.manufacturers.destroy', ids[0]), {
             preserveScroll: true,
             preserveState: true,
-            only: ['categories'],
+            only: ['manufacturers'],
             onSuccess: () => selectedIds.value.delete(ids[0]),
         });
     } else {
-        router.delete(route('assets.categories.bulk-destroy'), {
+        router.delete(route('assets.manufacturers.bulk-destroy'), {
             data: { ids },
             preserveScroll: true,
             preserveState: true,
-            only: ['categories'],
+            only: ['manufacturers'],
             onSuccess: () => { selectedIds.value = new Set(); },
         });
     }
@@ -171,7 +172,7 @@ function onRowClick(row: any) {
 }
 
 function afterSave() {
-    router.reload({ only: ['statusdefinitions'] });
+    router.reload({ only: ['manufacturers'] });
 }
 
 function deleteOne(id: number) {
@@ -181,7 +182,7 @@ function deleteOne(id: number) {
 }
 
 const onRefresh = () => {
-    router.reload({ only: ['categories']});
+    router.reload({ only: ['manufacturers', 'filters'] });
 };
 
 const columns = computed(() => buildColumns({
@@ -208,12 +209,12 @@ const onPageChange = (page: number) => {
 </script>
 
 <template>
-    <DashboardLayout :breadcrumbs="[{ name: 'Assets', href: route('assets.index') }, { name: 'Kategorien', href: route('assets.categories.index') }]">
+    <DashboardLayout :breadcrumbs="[{ name: 'Assets', href: route('assets.index') }, { name: 'Hersteller', href: route('assets.manufacturers.index') }]">
         <div class="flex flex-col gap-2 h-full min-h-0">
             <!-- Actions -->
             <div class="flex justify-between rounded-md border border-destructive/30 bg-destructive/5 px-4 py-2 shrink-0">
                 <div class="flex items-center gap-2">
-                    <Button variant="outline" class="text-green-500" @click="onCreate()">
+                    <Button variant="outline" class="text-green-500" @click="onCreate()" title="Neuer Hersteller">
                         <PlusIcon class="w-4 h-4" />
                         <!-- <div class="pe-1">Neu</div> -->
                     </Button>
@@ -268,7 +269,7 @@ const onPageChange = (page: number) => {
             </div>
         </div>
 
-        <FormModal v-model:open="modalOpen" :mode="modalMode" :category="modalData" @saved="afterSave" />
-        <GenericDeleteModal v-model:open="deleteModalOpen" title="Kategorie löschen" :description=deleteModalDescription :data="selectedDatas" @success="handleDeleteSuccess()" />
+        <FormModal v-model:open="modalOpen" :mode="modalMode" :manufacturer="modalData" @saved="afterSave" />
+        <GenericDeleteModal v-model:open="deleteModalOpen" title="Hersteller löschen" :description=deleteModalDescription :data="selectedDatas" @success="handleDeleteSuccess()" />
     </DashboardLayout>
 </template>

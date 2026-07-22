@@ -72,6 +72,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->integer('sort_order')->default(0);
+            $table->string('color', 7)->nullable();  // #RRGGBB
             $table->boolean('is_active')->default(true);
 
             $table->timestamps();

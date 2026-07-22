@@ -36,10 +36,16 @@ export function buildColumns(handlers: {
             meta: { headerClass: 'w-px whitespace-nowrap', cellClass: 'w-px whitespace-nowrap' },
         },
         {
+            accessorKey: 'module',
+            header: () => 'Modul',
+            cell: ({ row }) => h('div', { class: '' }, row.getValue('module')),
+            meta: { headerClass: '', cellClass: '' },
+        },
+        {
             accessorKey: 'name',
             header: () => 'Name',
             cell: ({ row }) => h('div', { class: 'font-medium' }, row.getValue('name')),
-            meta: { headerClass: 'w-[50%]', cellClass: 'w-[50%]' },
+            meta: { headerClass: 'w-fit', cellClass: 'w-fit' },
         },
         {
             id: 'actions',
@@ -57,8 +63,14 @@ export function buildColumns(handlers: {
         {
             accessorKey: 'description',
             header: () => 'Beschreibung',
-            cell: ({ row }) => h('div', { class: 'text-muted-foreground' }, row.getValue('description') || '—'),
-            meta: { headerClass: 'w-[50%]', cellClass: 'w-[50%]' },
+            cell: ({ row }) => h('div', { class: '' }, row.getValue('description') || '—'),
+            meta: { headerClass: 'w-fit', cellClass: 'w-fit' },
+        },
+        {
+            accessorKey: 'sort_order',
+            header: () => 'Sortierreihenfolge',
+            cell: ({ row }) => h('div', { class: '' }, row.getValue('sort_order') || '—'),
+            meta: { headerClass: 'w-fit', cellClass: 'w-fit' },
         },
         {
             accessorKey: 'color',

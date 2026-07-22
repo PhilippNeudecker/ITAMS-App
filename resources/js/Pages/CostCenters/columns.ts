@@ -2,7 +2,6 @@ import { h } from 'vue'
 import type { ColumnDef } from '@tanstack/vue-table'
 import { CheckIcon, XIcon } from 'lucide-vue-next'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Badge } from '@/components/ui/badge'
 import DropdownAction from '@/components/data-table/DataTableDropDown.vue'
 import { formatDate, formatDateShort } from '@/lib/utils'
 
@@ -36,10 +35,10 @@ export function buildColumns(handlers: {
             meta: { headerClass: 'w-px whitespace-nowrap', cellClass: 'w-px whitespace-nowrap' },
         },
         {
-            accessorKey: 'name',
-            header: () => 'Name',
-            cell: ({ row }) => h('div', { class: 'font-medium' }, row.getValue('name')),
-            meta: { headerClass: 'w-[50%]', cellClass: 'w-[50%]' },
+            accessorKey: 'cost_center_code',
+            header: () => 'Kostenstelle',
+            cell: ({ row }) => h('div', { class: '' }, row.getValue('cost_center_code')),
+            meta: { headerClass: '', cellClass: '' },
         },
         {
             id: 'actions',
@@ -55,22 +54,16 @@ export function buildColumns(handlers: {
             meta: { headerClass: 'w-px whitespace-nowrap', cellClass: 'w-px whitespace-nowrap' },
         },
         {
-            accessorKey: 'description',
-            header: () => 'Beschreibung',
-            cell: ({ row }) => h('div', { class: 'text-muted-foreground' }, row.getValue('description') || '—'),
-            meta: { headerClass: 'w-[50%]', cellClass: 'w-[50%]' },
+            accessorKey: 'name',
+            header: () => 'Name',
+            cell: ({ row }) => h('div', { class: 'font-medium' }, row.getValue('name')),
+            meta: { headerClass: 'w-fit', cellClass: 'w-fit' },
         },
         {
-            accessorKey: 'color',
-            header: () => 'Farbe',
-            cell: ({ row }) => {
-                const color = row.getValue('color') as string | null
-                return h('div', {}, h(Badge, {
-                    class: 'rounded-l',
-                    style: color ? `background-color:${color}20; color:${color}; border-color:${color}40` : '',
-                }, () => color ?? '—'))
-            },
-            meta: { headerClass: 'w-px whitespace-nowrap', cellClass: 'w-px whitespace-nowrap' },
+            accessorKey: 'description',
+            header: () => 'Beschreibung',
+            cell: ({ row }) => h('div', { class: '' }, row.getValue('description') || '—'),
+            meta: { headerClass: 'w-fit', cellClass: 'w-fit' },
         },
         {
             accessorKey: 'is_active',

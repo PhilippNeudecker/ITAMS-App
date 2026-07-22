@@ -5,11 +5,11 @@ import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import DataTable from "@/components/data-table/data-table.vue";
-import { buildColumns } from "@/Pages/AssetCategories/columns";
+import { buildColumns } from "@/Pages/Locations/columns";
 import { Separator } from '@/components/ui/separator';
 import { PlusIcon, SearchIcon, Trash2Icon, SlidersHorizontalIcon, FileSearchIcon, PenIcon, CopyIcon, RefreshCcwIcon } from 'lucide-vue-next';
 import { route } from 'ziggy-js';
-import FormModal from '@/Pages/AssetCategories/CategoryFormModal.vue';
+import FormModal from '@/Pages/Locations/FormModal.vue';
 import GenericDeleteModal from '@/components/modals/GenericDeleteModal.vue';
 import { type Paginator } from '@/interfaces/Pagination';
 import { type ModalMode } from '@/interfaces/ModalMode';
@@ -18,6 +18,8 @@ const syncing = ref(false);
 
 const props = defineProps<{
     data: Paginator<any>;
+    parents: any[];
+    locationTypes: any[];
     filters: {
         search?: string;
         active_only?: boolean;
@@ -35,10 +37,10 @@ const onSearch = () => {
 };
 
 const applyFilters = () => {
-    router.get(route('assets.categories.index'), {
+    router.get(route('locations.index'), {
         search: search.value || undefined,
         active_only: activeOnly.value === 'active' || undefined,
-    }, { preserveState: true, replace: true, only: ['assets.categories', 'filters'] });
+    }, { preserveState: true, replace: true, only: ['locations', 'filters'] });
 };
 
 const resetFilters = () => {
@@ -116,16 +118,16 @@ function openModal(mode: ModalMode, data: any | null) {
     modalOpen.value = true;
 }
 
-function openDeleteModal(data: any[] = selectedDatas.value) {
+function openDeleteModal(datas: any[] = selectedDatas.value) {
 
-    const inUse = data.filter(t => (t.assets_count ?? 0) > 0);
+    const inUse = datas.filter(t => (t.assets_count ?? 0) > 0);
     if (inUse.length) {
-        alert(`Folgende Status Definitionen werden noch von Assets verwendet und können nicht gelöscht werden: ${inUse.map(t => t.name).join(', ')}`);
+        alert(`Folgende Hersteller werden noch von Assets verwendet und können nicht gelöscht werden: ${inUse.map(t => t.name).join(', ')}`);
         return;
     }
-    deleteModalDescription = data.length === 1
-        ? `Möchten Sie die Status Definition "${data[0].name}" wirklich löschen?`
-        : `Möchten Sie ${data.length} Status Definitionen wirklich löschen?`;
+    deleteModalDescription = datas.length === 1
+        ? `Möchten Sie den Hersteller "${datas[0].name}" wirklich löschen?`
+        : `Möchten Sie ${datas.length} Hersteller wirklich löschen?`;
 
     deleteModalOpen.value = true;
 }
@@ -134,18 +136,18 @@ function handleDeleteSuccess(datas: any[] = selectedDatas.value) {
     const ids = datas.map(t => t.id);
 
     if (ids.length === 1) {
-        router.delete(route('assets.categories.destroy', ids[0]), {
+        router.delete(route('locations.destroy', ids[0]), {
             preserveScroll: true,
             preserveState: true,
-            only: ['categories'],
+            only: ['locations'],
             onSuccess: () => selectedIds.value.delete(ids[0]),
         });
     } else {
-        router.delete(route('assets.categories.bulk-destroy'), {
+        router.delete(route('locations.bulk-destroy'), {
             data: { ids },
             preserveScroll: true,
             preserveState: true,
-            only: ['categories'],
+            only: ['locations'],
             onSuccess: () => { selectedIds.value = new Set(); },
         });
     }
@@ -171,7 +173,7 @@ function onRowClick(row: any) {
 }
 
 function afterSave() {
-    router.reload({ only: ['statusdefinitions'] });
+    router.reload({ only: ['locations'] });
 }
 
 function deleteOne(id: number) {
@@ -181,7 +183,7 @@ function deleteOne(id: number) {
 }
 
 const onRefresh = () => {
-    router.reload({ only: ['categories']});
+    router.reload({ only: ['locations', 'filters'] });
 };
 
 const columns = computed(() => buildColumns({
@@ -196,7 +198,7 @@ const columns = computed(() => buildColumns({
 }));
 
 const onPageChange = (page: number) => {
-    router.get(route('employees.index'), {
+    router.get(route('statusdefinitions.index'), {
         page,
         search: props.filters.search,
     }, {
@@ -208,7 +210,7 @@ const onPageChange = (page: number) => {
 </script>
 
 <template>
-    <DashboardLayout :breadcrumbs="[{ name: 'Assets', href: route('assets.index') }, { name: 'Kategorien', href: route('assets.categories.index') }]">
+    <DashboardLayout :breadcrumbs="[{ name: 'Assets', href: route('assets.index') }, { name: 'Lagerort', href: route('locations.index') }]">
         <div class="flex flex-col gap-2 h-full min-h-0">
             <!-- Actions -->
             <div class="flex justify-between rounded-md border border-destructive/30 bg-destructive/5 px-4 py-2 shrink-0">
@@ -268,7 +270,7 @@ const onPageChange = (page: number) => {
             </div>
         </div>
 
-        <FormModal v-model:open="modalOpen" :mode="modalMode" :category="modalData" @saved="afterSave" />
-        <GenericDeleteModal v-model:open="deleteModalOpen" title="Kategorie löschen" :description=deleteModalDescription :data="selectedDatas" @success="handleDeleteSuccess()" />
+        <FormModal v-model:open="modalOpen" :mode="modalMode" :location="modalData" :parents="parents" :location-types="locationTypes" @saved="afterSave" />
+        <GenericDeleteModal v-model:open="deleteModalOpen" title="Hersteller löschen" :description=deleteModalDescription :data="selectedDatas" @success="handleDeleteSuccess()" />
     </DashboardLayout>
 </template>

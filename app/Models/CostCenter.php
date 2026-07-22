@@ -1,12 +1,6 @@
 <?php
-// ═══════════════════════════════════════════════════
-//  app/Models/  –  alle Asset-relevanten Modelle
-//  Jedes Modell liegt normalerweise in einer eigenen
-//  Datei; hier zusammengefasst für die Übersicht.
-// ═══════════════════════════════════════════════════
-
-// ── app/Models/CostCenter.php ────────────────────
 namespace App\Models;
+
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;

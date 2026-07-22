@@ -2,7 +2,6 @@ import { h } from 'vue'
 import type { ColumnDef } from '@tanstack/vue-table'
 import { CheckIcon, XIcon } from 'lucide-vue-next'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Badge } from '@/components/ui/badge'
 import DropdownAction from '@/components/data-table/DataTableDropDown.vue'
 import { formatDate, formatDateShort } from '@/lib/utils'
 
@@ -36,10 +35,10 @@ export function buildColumns(handlers: {
             meta: { headerClass: 'w-px whitespace-nowrap', cellClass: 'w-px whitespace-nowrap' },
         },
         {
-            accessorKey: 'name',
-            header: () => 'Name',
-            cell: ({ row }) => h('div', { class: 'font-medium' }, row.getValue('name')),
-            meta: { headerClass: 'w-[50%]', cellClass: 'w-[50%]' },
+            accessorKey: 'employee_id',
+            header: () => 'Personalnr.',
+            cell: ({ row }) => h('div', { class: '' }, row.getValue('employee_id')),
+            meta: { headerClass: '', cellClass: '' },
         },
         {
             id: 'actions',
@@ -55,33 +54,53 @@ export function buildColumns(handlers: {
             meta: { headerClass: 'w-px whitespace-nowrap', cellClass: 'w-px whitespace-nowrap' },
         },
         {
-            accessorKey: 'description',
-            header: () => 'Beschreibung',
-            cell: ({ row }) => h('div', { class: 'text-muted-foreground' }, row.getValue('description') || '—'),
-            meta: { headerClass: 'w-[50%]', cellClass: 'w-[50%]' },
+            accessorKey: 'first_name',
+            header: () => 'Vorname',
+            cell: ({ row }) => h('div', { class: 'font-medium' }, row.getValue('first_name')),
+            meta: { headerClass: 'w-fit', cellClass: 'w-fit' },
+            enableSorting: true,
         },
         {
-            accessorKey: 'color',
-            header: () => 'Farbe',
-            cell: ({ row }) => {
-                const color = row.getValue('color') as string | null
-                return h('div', {}, h(Badge, {
-                    class: 'rounded-l',
-                    style: color ? `background-color:${color}20; color:${color}; border-color:${color}40` : '',
-                }, () => color ?? '—'))
-            },
-            meta: { headerClass: 'w-px whitespace-nowrap', cellClass: 'w-px whitespace-nowrap' },
+            accessorKey: 'last_name',
+            header: () => 'Nachname',
+            cell: ({ row }) => h('div', { class: 'font-medium' }, row.getValue('last_name')),
+            meta: { headerClass: 'w-fit', cellClass: 'w-fit' },
+            enableSorting: true,
+        },
+        // {
+        //     accessorKey: 'display_name',
+        //     header: () => 'Name',
+        //     cell: ({ row }) => h('div', { class: 'font-medium' }, row.getValue('display_name')),
+        //     meta: { headerClass: 'w-fit', cellClass: 'w-fit' },
+        // },
+        {
+            accessorKey: 'mail',
+            header: () => 'Mail',
+            cell: ({ row }) => h('div', { class: 'font-medium' }, row.getValue('mail')),
+            meta: { headerClass: 'w-fit', cellClass: 'w-fit' },
         },
         {
-            accessorKey: 'is_active',
-            header: () => 'Aktiv',
+            accessorKey: 'cost_center_id',
+            header: () => 'KST',
+            cell: ({ row }) => h('div', { class: '' }, row.getValue('cost_center_id') || '—'),
+            meta: { headerClass: 'w-fit', cellClass: 'w-fit' },
+        },
+        {
+            accessorKey: 'ad_status',
+            header: () => 'AD Status',
             cell: ({ row }) => {
-                const isActive = row.getValue('is_active')
+                const isActive = row.getValue('ad_status')
                 return h(isActive ? CheckIcon : XIcon, {
                     class: isActive ? 'justify-self-center text-green-600 h-5 w-5' : 'justify-self-center text-red-600 h-5 w-5',
                 })
             },
             meta: { headerClass: 'w-px whitespace-nowrap text-center', cellClass: 'w-px whitespace-nowrap text-center' },
+        },
+        {
+            accessorKey: 'last_sync_at',
+            header: () => 'Letzter Sync',
+            cell: ({ row }) => h('div', { class: '' }, formatDateShort(row.getValue('last_sync_at')) || '—'),
+            meta: { headerClass: 'w-fit', cellClass: 'w-fit' },
         },
     ]
 }

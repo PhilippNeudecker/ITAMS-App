@@ -39,7 +39,7 @@ export function buildColumns(handlers: {
             accessorKey: 'name',
             header: () => 'Name',
             cell: ({ row }) => h('div', { class: 'font-medium' }, row.getValue('name')),
-            meta: { headerClass: 'w-[50%]', cellClass: 'w-[50%]' },
+            meta: { headerClass: 'w-fit', cellClass: 'w-fit' },
         },
         {
             id: 'actions',
@@ -55,33 +55,16 @@ export function buildColumns(handlers: {
             meta: { headerClass: 'w-px whitespace-nowrap', cellClass: 'w-px whitespace-nowrap' },
         },
         {
-            accessorKey: 'description',
-            header: () => 'Beschreibung',
-            cell: ({ row }) => h('div', { class: 'text-muted-foreground' }, row.getValue('description') || '—'),
-            meta: { headerClass: 'w-[50%]', cellClass: 'w-[50%]' },
+            accessorKey: 'website',
+            header: () => 'Website',
+            cell: ({ row }) => h('div', { class: 'text-muted-foreground' }, row.getValue('website') || '—'),
+            meta: { headerClass: 'w-fit', cellClass: 'w-fit' },
         },
         {
-            accessorKey: 'color',
-            header: () => 'Farbe',
-            cell: ({ row }) => {
-                const color = row.getValue('color') as string | null
-                return h('div', {}, h(Badge, {
-                    class: 'rounded-l',
-                    style: color ? `background-color:${color}20; color:${color}; border-color:${color}40` : '',
-                }, () => color ?? '—'))
-            },
-            meta: { headerClass: 'w-px whitespace-nowrap', cellClass: 'w-px whitespace-nowrap' },
-        },
-        {
-            accessorKey: 'is_active',
-            header: () => 'Aktiv',
-            cell: ({ row }) => {
-                const isActive = row.getValue('is_active')
-                return h(isActive ? CheckIcon : XIcon, {
-                    class: isActive ? 'justify-self-center text-green-600 h-5 w-5' : 'justify-self-center text-red-600 h-5 w-5',
-                })
-            },
-            meta: { headerClass: 'w-px whitespace-nowrap text-center', cellClass: 'w-px whitespace-nowrap text-center' },
+            accessorKey: 'support_contact',
+            header: () => 'Support Mail',
+            cell: ({ row }) => h('div', { class: 'text-muted-foreground' }, row.getValue('support_contact') || '—'),
+            meta: { headerClass: 'w-fit', cellClass: 'w-fit' },
         },
     ]
 }

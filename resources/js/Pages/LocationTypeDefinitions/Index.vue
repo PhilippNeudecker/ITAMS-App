@@ -5,11 +5,11 @@ import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import DataTable from "@/components/data-table/data-table.vue";
-import { buildColumns } from "@/Pages/AssetCategories/columns";
+import { buildColumns } from "@/Pages/LocationTypeDefinitions/columns";
 import { Separator } from '@/components/ui/separator';
 import { PlusIcon, SearchIcon, Trash2Icon, SlidersHorizontalIcon, FileSearchIcon, PenIcon, CopyIcon, RefreshCcwIcon } from 'lucide-vue-next';
 import { route } from 'ziggy-js';
-import FormModal from '@/Pages/AssetCategories/CategoryFormModal.vue';
+import FormModal from '@/Pages/LocationTypeDefinitions/FormModal.vue';
 import GenericDeleteModal from '@/components/modals/GenericDeleteModal.vue';
 import { type Paginator } from '@/interfaces/Pagination';
 import { type ModalMode } from '@/interfaces/ModalMode';
@@ -35,10 +35,10 @@ const onSearch = () => {
 };
 
 const applyFilters = () => {
-    router.get(route('assets.categories.index'), {
+    router.get(route('locationtypedefinitions.index'), {
         search: search.value || undefined,
         active_only: activeOnly.value === 'active' || undefined,
-    }, { preserveState: true, replace: true, only: ['assets.categories', 'filters'] });
+    }, { preserveState: true, replace: true, only: ['locationtypedefinitions', 'filters'] });
 };
 
 const resetFilters = () => {
@@ -120,7 +120,7 @@ function openDeleteModal(data: any[] = selectedDatas.value) {
 
     const inUse = data.filter(t => (t.assets_count ?? 0) > 0);
     if (inUse.length) {
-        alert(`Folgende Status Definitionen werden noch von Assets verwendet und können nicht gelöscht werden: ${inUse.map(t => t.name).join(', ')}`);
+        alert(`Folgende Lagerarten werden noch von Assets verwendet und können nicht gelöscht werden: ${inUse.map(t => t.name).join(', ')}`);
         return;
     }
     deleteModalDescription = data.length === 1
@@ -134,18 +134,18 @@ function handleDeleteSuccess(datas: any[] = selectedDatas.value) {
     const ids = datas.map(t => t.id);
 
     if (ids.length === 1) {
-        router.delete(route('assets.categories.destroy', ids[0]), {
+        router.delete(route('locationtypedefinitions.destroy', ids[0]), {
             preserveScroll: true,
             preserveState: true,
-            only: ['categories'],
+            only: ['locationtypedefinitions'],
             onSuccess: () => selectedIds.value.delete(ids[0]),
         });
     } else {
-        router.delete(route('assets.categories.bulk-destroy'), {
+        router.delete(route('locationtypedefinitions.bulk-destroy'), {
             data: { ids },
             preserveScroll: true,
             preserveState: true,
-            only: ['categories'],
+            only: ['locationtypedefinitions'],
             onSuccess: () => { selectedIds.value = new Set(); },
         });
     }
@@ -171,7 +171,7 @@ function onRowClick(row: any) {
 }
 
 function afterSave() {
-    router.reload({ only: ['statusdefinitions'] });
+    router.reload({ only: ['locationtypedefinitions'] });
 }
 
 function deleteOne(id: number) {
@@ -181,7 +181,7 @@ function deleteOne(id: number) {
 }
 
 const onRefresh = () => {
-    router.reload({ only: ['categories']});
+    router.reload({ only: ['locationtypedefinitions', 'filters']});
 };
 
 const columns = computed(() => buildColumns({
@@ -208,7 +208,7 @@ const onPageChange = (page: number) => {
 </script>
 
 <template>
-    <DashboardLayout :breadcrumbs="[{ name: 'Assets', href: route('assets.index') }, { name: 'Kategorien', href: route('assets.categories.index') }]">
+    <DashboardLayout :breadcrumbs="[{ name: 'Assets', href: route('assets.index') }, { name: 'Lagerarten', href: route('locationtypedefinitions.index') }]">
         <div class="flex flex-col gap-2 h-full min-h-0">
             <!-- Actions -->
             <div class="flex justify-between rounded-md border border-destructive/30 bg-destructive/5 px-4 py-2 shrink-0">
@@ -268,7 +268,7 @@ const onPageChange = (page: number) => {
             </div>
         </div>
 
-        <FormModal v-model:open="modalOpen" :mode="modalMode" :category="modalData" @saved="afterSave" />
-        <GenericDeleteModal v-model:open="deleteModalOpen" title="Kategorie löschen" :description=deleteModalDescription :data="selectedDatas" @success="handleDeleteSuccess()" />
+        <FormModal v-model:open="modalOpen" :mode="modalMode" :locationtypedefinition="modalData" @saved="afterSave" />
+        <GenericDeleteModal v-model:open="deleteModalOpen" title="Status Definition löschen" :description=deleteModalDescription :data="selectedDatas" @success="handleDeleteSuccess()" />
     </DashboardLayout>
 </template>

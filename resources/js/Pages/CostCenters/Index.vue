@@ -5,14 +5,15 @@ import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import DataTable from "@/components/data-table/data-table.vue";
-import { buildColumns } from "@/Pages/AssetCategories/columns";
+import { buildColumns } from "@/Pages/CostCenters/columns";
 import { Separator } from '@/components/ui/separator';
 import { PlusIcon, SearchIcon, Trash2Icon, SlidersHorizontalIcon, FileSearchIcon, PenIcon, CopyIcon, RefreshCcwIcon } from 'lucide-vue-next';
 import { route } from 'ziggy-js';
-import FormModal from '@/Pages/AssetCategories/CategoryFormModal.vue';
+import FormModal from '@/Pages/CostCenters/FormModal.vue';
 import GenericDeleteModal from '@/components/modals/GenericDeleteModal.vue';
 import { type Paginator } from '@/interfaces/Pagination';
 import { type ModalMode } from '@/interfaces/ModalMode';
+import { CloudDownloadIcon } from 'lucide-vue-next';
 
 const syncing = ref(false);
 
@@ -35,10 +36,10 @@ const onSearch = () => {
 };
 
 const applyFilters = () => {
-    router.get(route('assets.categories.index'), {
+    router.get(route('costcenters.index'), {
         search: search.value || undefined,
         active_only: activeOnly.value === 'active' || undefined,
-    }, { preserveState: true, replace: true, only: ['assets.categories', 'filters'] });
+    }, { preserveState: true, replace: true, only: ['costcenters', 'filters'] });
 };
 
 const resetFilters = () => {
@@ -120,12 +121,12 @@ function openDeleteModal(data: any[] = selectedDatas.value) {
 
     const inUse = data.filter(t => (t.assets_count ?? 0) > 0);
     if (inUse.length) {
-        alert(`Folgende Status Definitionen werden noch von Assets verwendet und können nicht gelöscht werden: ${inUse.map(t => t.name).join(', ')}`);
+        alert(`Folgende Kostenstellen werden noch von Assets verwendet und können nicht gelöscht werden: ${inUse.map(t => t.name).join(', ')}`);
         return;
     }
     deleteModalDescription = data.length === 1
         ? `Möchten Sie die Status Definition "${data[0].name}" wirklich löschen?`
-        : `Möchten Sie ${data.length} Status Definitionen wirklich löschen?`;
+        : `Möchten Sie ${data.length} Kostenstellen wirklich löschen?`;
 
     deleteModalOpen.value = true;
 }
@@ -134,18 +135,18 @@ function handleDeleteSuccess(datas: any[] = selectedDatas.value) {
     const ids = datas.map(t => t.id);
 
     if (ids.length === 1) {
-        router.delete(route('assets.categories.destroy', ids[0]), {
+        router.delete(route('costcenters.destroy', ids[0]), {
             preserveScroll: true,
             preserveState: true,
-            only: ['categories'],
+            only: ['costcenters'],
             onSuccess: () => selectedIds.value.delete(ids[0]),
         });
     } else {
-        router.delete(route('assets.categories.bulk-destroy'), {
+        router.delete(route('costcenters.bulk-destroy'), {
             data: { ids },
             preserveScroll: true,
             preserveState: true,
-            only: ['categories'],
+            only: ['costcenters'],
             onSuccess: () => { selectedIds.value = new Set(); },
         });
     }
@@ -171,7 +172,7 @@ function onRowClick(row: any) {
 }
 
 function afterSave() {
-    router.reload({ only: ['statusdefinitions'] });
+    router.reload({ only: ['costcenters'] });
 }
 
 function deleteOne(id: number) {
@@ -181,7 +182,7 @@ function deleteOne(id: number) {
 }
 
 const onRefresh = () => {
-    router.reload({ only: ['categories']});
+    router.reload({ only: ['costcenters', 'filters'] });
 };
 
 const columns = computed(() => buildColumns({
@@ -194,6 +195,17 @@ const columns = computed(() => buildColumns({
     onCopy,
     onDelete: deleteOne,
 }));
+
+const onSyncM3 = () => {
+    if (syncing.value) return;
+    syncing.value = true;
+    router.post(route('costcenters.sync-m3'), {}, {
+        preserveScroll: true,
+        preserveState: true,
+        only: ['costcenters', 'flash'],
+        onFinish: () => { syncing.value = false; },
+    });
+};
 
 const onPageChange = (page: number) => {
     router.get(route('employees.index'), {
@@ -208,7 +220,7 @@ const onPageChange = (page: number) => {
 </script>
 
 <template>
-    <DashboardLayout :breadcrumbs="[{ name: 'Assets', href: route('assets.index') }, { name: 'Kategorien', href: route('assets.categories.index') }]">
+    <DashboardLayout :breadcrumbs="[{ name: 'Assets', href: route('assets.index') }, { name: 'Kostenstellen', href: route('costcenters.index') }]">
         <div class="flex flex-col gap-2 h-full min-h-0">
             <!-- Actions -->
             <div class="flex justify-between rounded-md border border-destructive/30 bg-destructive/5 px-4 py-2 shrink-0">
@@ -240,6 +252,11 @@ const onPageChange = (page: number) => {
                         <RefreshCcwIcon class="w-4 h-4" :class="{ 'animate-spin': isLoading }" />
                         <!-- <div class="pe-1">Aktualisieren</div> -->
                     </Button>
+                    <Separator orientation="vertical" />
+                    <Button variant="outline" class="text-blue-500" @click="onSyncM3()" :disabled="syncing" title="Mit M3 synchronisieren">
+                        <CloudDownloadIcon class="w-4 h-4" :class="{ 'animate-pulse': syncing }" />
+                        <div class="pe-1">Sync with M3</div>
+                    </Button>
                 </div>
                 <div class="flex gap-2 justify-end">
                     <div class="relative flex items-center h-9 overflow-hidden transition-all duration-200 ease-in-out" :class="(searchExpanded || search) ? 'w-64' : 'w-9'">
@@ -268,7 +285,7 @@ const onPageChange = (page: number) => {
             </div>
         </div>
 
-        <FormModal v-model:open="modalOpen" :mode="modalMode" :category="modalData" @saved="afterSave" />
-        <GenericDeleteModal v-model:open="deleteModalOpen" title="Kategorie löschen" :description=deleteModalDescription :data="selectedDatas" @success="handleDeleteSuccess()" />
+        <FormModal v-model:open="modalOpen" :mode="modalMode" :costcenter="modalData" @saved="afterSave" />
+        <GenericDeleteModal v-model:open="deleteModalOpen" title="Status Definition löschen" :description=deleteModalDescription :data="selectedDatas" @success="handleDeleteSuccess()" />
     </DashboardLayout>
 </template>

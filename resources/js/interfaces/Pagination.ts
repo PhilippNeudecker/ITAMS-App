@@ -7,12 +7,13 @@ interface PaginationMeta {
     }>;
 }
 
-export interface PaginatedResponse<T> {
+export interface Paginator<T> {
     data: T[];
     current_page: number;
-    from: number;
-    to: number;
-    total: number;
     last_page: number;
     per_page: number;
+    total: number;
+    from: number;
+    to: number;
+    links: { url: string | null; label: string; active: boolean }[];
 }

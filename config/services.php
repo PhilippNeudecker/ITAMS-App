@@ -34,5 +34,19 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-
+    'm3' => [
+        'client_id' => env('M3_CLIENTID'),
+        'client_secret' => env('M3_CLIENTSECRET'),
+        'token_url' => env('M3_TOKEN_URL'),
+        'api_url' => env('M3_API_URL'),
+    ],
+    'ldap' => [
+        'host' => env('LDAP_HOST'),
+        'port' => env('LDAP_PORT'),
+        'base_dn' => env('LDAP_BASE_DN'),
+        'bind_dn' => env('LDAP_BIND_DN'),
+        'bind_password' => env('LDAP_BIND_PASSWORD'),
+        'user_filter' => env('LDAP_USER_FILTER'),
+        'employee_id_attr' => env('LDAP_EMPLOYEE_ID_ATTR'),
+    ],
 ];

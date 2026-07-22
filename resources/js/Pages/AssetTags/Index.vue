@@ -10,19 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { PlusIcon, SearchIcon, Trash2Icon, SlidersHorizontalIcon, FileSearchIcon, PenIcon, CopyIcon, RefreshCcwIcon } from 'lucide-vue-next';
 import { route } from 'ziggy-js';
-import TagFormModal, { type TagModalMode } from '@/Pages/AssetTags/TagFormModal.vue';
+import FormModal from '@/Pages/AssetTags/TagFormModal.vue';
+import GenericDeleteModal from '@/components/modals/GenericDeleteModal.vue';
+import { type Paginator } from '@/interfaces/Pagination';
+import { type ModalMode } from '@/interfaces/ModalMode';
 
-interface Paginator<T> {
-    data: T[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    links: { url: string | null; label: string; active: boolean }[];
-}
+const syncing = ref(false);
 
 const props = defineProps<{
-    tags: Paginator<any>;
+    data: Paginator<any>;
     filters: {
         search?: string;
         active_only?: boolean;
@@ -31,6 +27,7 @@ const props = defineProps<{
 
 const search = ref(props.filters.search ?? '');
 const activeOnly = ref(props.filters.active_only ? 'active' : '');
+let deleteModalDescription = '';
 
 let searchTimer: ReturnType<typeof setTimeout>;
 const onSearch = () => {
@@ -90,7 +87,7 @@ const toggleSelected = (id: number, value: boolean) => {
     selectedIds.value = next;
 };
 const isAllSelected = (): boolean | 'indeterminate' => {
-    const rows = props.tags.data;
+    const rows = props.data.data;
     if (!rows.length) return false;
     if (rows.every(t => selectedIds.value.has(t.id))) return true;
     if (rows.some(t => selectedIds.value.has(t.id))) return 'indeterminate';
@@ -98,58 +95,95 @@ const isAllSelected = (): boolean | 'indeterminate' => {
 };
 const toggleAll = (value: boolean) => {
     const next = new Set(selectedIds.value);
-    props.tags.data.forEach(t => value ? next.add(t.id) : next.delete(t.id));
+    props.data.data.forEach(m => value ? next.add(m.id) : next.delete(m.id));
     selectedIds.value = next;
 };
 
-const selectedTags = computed(() => props.tags.data.filter(t => selectedIds.value.has(t.id)));
-const singleSelectedTag = computed(() => selectedTags.value.length === 1 ? selectedTags.value[0] : null);
+const selectedDatas = computed(() => props.data.data.filter(t => selectedIds.value.has(t.id)));
+const singleSelectedData = computed(() => selectedDatas.value.length === 1 ? selectedDatas.value[0] : null);
 
 const modalOpen = ref(false);
-const modalMode = ref<TagModalMode>('create');
-const modalTag = ref<any | null>(null);
+const deleteModalOpen = ref(false);
+const modalMode = ref<ModalMode>('create');
+const modalData = ref<any | null>(null);
 
 function findTag(id: number): any | null {
-    return props.tags.data.find(t => t.id === id) ?? null;
+    return props.data.data.find(t => t.id === id) ?? null;
 }
 
-function openModal(mode: TagModalMode, tag: any | null) {
+function openModal(mode: ModalMode, data: any | null) {
     modalMode.value = mode;
-    modalTag.value = tag;
+    modalData.value = data;
     modalOpen.value = true;
+}
+
+function openDeleteModal(data: any[] = selectedDatas.value) {
+
+    const inUse = data.filter(t => (t.assets_count ?? 0) > 0);
+    if (inUse.length) {
+        alert(`Folgende Status Definitionen werden noch von Assets verwendet und können nicht gelöscht werden: ${inUse.map(t => t.name).join(', ')}`);
+        return;
+    }
+    deleteModalDescription = data.length === 1
+        ? `Möchten Sie die Status Definition "${data[0].name}" wirklich löschen?`
+        : `Möchten Sie ${data.length} Status Definitionen wirklich löschen?`;
+
+    deleteModalOpen.value = true;
+}
+
+function handleDeleteSuccess(datas: any[] = selectedDatas.value) {
+    const ids = datas.map(t => t.id);
+
+    if (ids.length === 1) {
+        router.delete(route('statusdefinitions.destroy', ids[0]), {
+            preserveScroll: true,
+            preserveState: true,
+            only: ['statusdefinitions'],
+            onSuccess: () => selectedIds.value.delete(ids[0]),
+        });
+    } else {
+        router.delete(route('statusdefinitions.bulk-destroy'), {
+            data: { ids },
+            preserveScroll: true,
+            preserveState: true,
+            only: ['statusdefinitions'],
+            onSuccess: () => { selectedIds.value = new Set(); },
+        });
+    }
+    deleteModalOpen.value = false;
 }
 
 const onCreate = () => openModal('create', null);
 const onView = (id?: number) => {
-    const tag = id ? findTag(id) : singleSelectedTag.value;
+    const tag = id ? findTag(id) : singleSelectedData.value;
     if (tag) openModal('view', tag);
 };
 const onEdit = (id?: number) => {
-    const tag = id ? findTag(id) : singleSelectedTag.value;
+    const tag = id ? findTag(id) : singleSelectedData.value;
     if (tag) openModal('edit', tag);
 };
 const onCopy = (id?: number) => {
-    const tag = id ? findTag(id) : singleSelectedTag.value;
+    const tag = id ? findTag(id) : singleSelectedData.value;
     if (tag) openModal('copy', tag);
 };
 
-function onRowClick(tag: any) {
-    openModal('view', tag);
+function onRowClick(row: any) {
+    openModal('view', row);
 }
 
 function afterSave() {
-    router.reload({ only: ['tags'], preserveScroll: true });
+    router.reload({ only: ['tags'] });
 }
 
 function deleteOne(id: number) {
     const tag = findTag(id);
     if (!tag) return;
-    performDelete([tag]);
+    openDeleteModal([tag]);
 }
 
 const onDelete = () => {
-    if (!selectedTags.value.length) return;
-    performDelete(selectedTags.value);
+    if (!selectedDatas.value.length) return;
+    performDelete(selectedDatas.value);
 };
 
 function performDelete(tags: any[]) {
@@ -187,7 +221,7 @@ function performDelete(tags: any[]) {
 }
 
 const onRefresh = () => {
-    router.reload({ only: ['tags', 'filters'], preserveScroll: true, preserveState: true });
+    router.reload({ only: ['tags', 'filters'] });
 };
 
 const columns = computed(() => buildColumns({
@@ -200,6 +234,17 @@ const columns = computed(() => buildColumns({
     onCopy,
     onDelete: deleteOne,
 }));
+
+const onPageChange = (page: number) => {
+    router.get(route('employees.index'), {
+        page,
+        search: props.filters.search,
+    }, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    })
+};
 </script>
 
 <template>
@@ -208,31 +253,31 @@ const columns = computed(() => buildColumns({
             <!-- Actions -->
             <div class="flex justify-between rounded-md border border-destructive/30 bg-destructive/5 px-4 py-2 shrink-0">
                 <div class="flex items-center gap-2">
-                    <Button variant="outline" class="text-green-500" @click="onCreate()" title="Neuer Tag">
+                    <Button variant="outline" class="text-green-500" @click="onCreate()">
                         <PlusIcon class="w-4 h-4" />
                         <!-- <div class="pe-1">Neu</div> -->
                     </Button>
                     <Separator orientation="vertical" />
-                    <Button variant="outline" class="text-gray-500" :disabled="!singleSelectedTag" @click="onView()" title="Anzeigen">
+                    <Button variant="outline" class="text-gray-500" :disabled="!singleSelectedData" @click="onView()" title="Anzeigen">
                         <FileSearchIcon class="w-4 h-4" />
                         <!-- <div class="pe-1">Anzeigen</div> -->
                     </Button>
-                    <Button variant="outline" class="text-gray-500" :disabled="!singleSelectedTag" @click="onEdit()" title="Bearbeiten">
+                    <Button variant="outline" class="text-gray-500" :disabled="!singleSelectedData" @click="onEdit()" title="Bearbeiten">
                         <PenIcon class="w-4 h-4" />
                         <!-- <div class="pe-1">Bearbeiten</div> -->
                     </Button>
-                    <Button variant="outline" class="text-gray-500" :disabled="!singleSelectedTag" @click="onCopy()" title="Kopieren">
+                    <Button variant="outline" class="text-gray-500" :disabled="!singleSelectedData" @click="onCopy()" title="Kopieren">
                         <CopyIcon class="w-4 h-4" />
                         <!-- <div class="pe-1">Kopieren</div> -->
                     </Button>
                     <Separator orientation="vertical" />
-                    <Button variant="outline" class="text-red-500" :disabled="!selectedTags.length" @click="onDelete()" title="Löschen">
+                    <Button variant="outline" class="text-red-500" :disabled="!selectedDatas.length" @click="openDeleteModal()" title="Löschen">
                         <Trash2Icon class="w-4 h-4" />
                         <!-- <div class="pe-1">Löschen</div> -->
                     </Button>
                     <Separator orientation="vertical" />
                     <Button variant="outline" class="text-gray-500" @click="onRefresh()" title="Aktualisieren" :disabled="isLoading">
-                        <RefreshCcwIcon class="w-4 h-4" />
+                        <RefreshCcwIcon class="w-4 h-4" :class="{ 'animate-spin': isLoading }" />
                         <!-- <div class="pe-1">Aktualisieren</div> -->
                     </Button>
                 </div>
@@ -268,10 +313,11 @@ const columns = computed(() => buildColumns({
             </div>
 
             <div class="flex-1 min-h-0">
-                <DataTable :columns="columns" :data="tags.data" :loading="isLoading" @row-click="onRowClick" />
+                <DataTable :columns="columns" :paginationData="data" :loading="isLoading" @row-click="onRowClick" @page-change="onPageChange" />
             </div>
         </div>
 
-        <TagFormModal v-model:open="modalOpen" :mode="modalMode" :tag="modalTag" @saved="afterSave" />
+        <FormModal v-model:open="modalOpen" :mode="modalMode" :tag="modalData" @saved="afterSave" />
+        <GenericDeleteModal v-model:open="deleteModalOpen" title="Tags löschen" :description=deleteModalDescription :data="selectedDatas" @success="handleDeleteSuccess()" />
     </DashboardLayout>
 </template>

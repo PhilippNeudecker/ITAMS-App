@@ -39,7 +39,7 @@ export function buildColumns(handlers: {
             accessorKey: 'name',
             header: () => 'Name',
             cell: ({ row }) => h('div', { class: 'font-medium' }, row.getValue('name')),
-            meta: { headerClass: 'w-[50%]', cellClass: 'w-[50%]' },
+            meta: { headerClass: 'w-fit', cellClass: 'w-fit' },
         },
         {
             id: 'actions',
@@ -57,20 +57,8 @@ export function buildColumns(handlers: {
         {
             accessorKey: 'description',
             header: () => 'Beschreibung',
-            cell: ({ row }) => h('div', { class: 'text-muted-foreground' }, row.getValue('description') || '—'),
-            meta: { headerClass: 'w-[50%]', cellClass: 'w-[50%]' },
-        },
-        {
-            accessorKey: 'color',
-            header: () => 'Farbe',
-            cell: ({ row }) => {
-                const color = row.getValue('color') as string | null
-                return h('div', {}, h(Badge, {
-                    class: 'rounded-l',
-                    style: color ? `background-color:${color}20; color:${color}; border-color:${color}40` : '',
-                }, () => color ?? '—'))
-            },
-            meta: { headerClass: 'w-px whitespace-nowrap', cellClass: 'w-px whitespace-nowrap' },
+            cell: ({ row }) => h('div', { class: '' }, row.getValue('description') || '—'),
+            meta: { headerClass: 'w-fit', cellClass: 'w-fit' },
         },
         {
             accessorKey: 'is_active',

@@ -62,70 +62,44 @@ const data = {
             url: route('assets.categories.index'),
         },
         {
-          title: "Bericht",
-          url: "#",
-        },
-        {
-          title: "Einstellungen",
-          url: "#",
+            title: "Hersteller",
+            url: route('assets.manufacturers.index'),
         },
       ],
     },
-    // {
-    //   title: "Models",
-    //   url: "#",
-    //   icon: Bot,
-    //   items: [
-    //     {
-    //       title: "Genesis",
-    //       url: "#",
-    //     },
-    //     {
-    //       title: "Explorer",
-    //       url: "#",
-    //     },
-    //     {
-    //       title: "Quantum",
-    //       url: "#",
-    //     },
-    //   ],
-    // },
-    // {
-    //   title: "Documentation",
-    //   url: "#",
-    //   icon: BookOpen,
-    //   items: [
-    //     {
-    //       title: "Introduction",
-    //       url: "#",
-    //     },
-    //     {
-    //       title: "Get Started",
-    //       url: "#",
-    //     },
-    //     {
-    //       title: "Tutorials",
-    //       url: "#",
-    //     },
-    //     {
-    //       title: "Changelog",
-    //       url: "#",
-    //     },
-    //   ],
-    // },
     {
       title: "Systemeinstellungen",
       url: "#",
       icon: Settings2,
       items: [
         {
-          title: "Allgemein",
-          url: "#",
+            title: "Lagerorte",
+            url: route('locations.index'),
         },
         {
-          title: "Assets",
-          url: "#",
+            title: "Status Definitionen",
+            url: route('statusdefinitions.index'),
         },
+        {
+            title: "Lagerartdefinitionen",
+            url: route('locationtypedefinitions.index'),
+        },
+        {
+            title: "Kostenstellen",
+            url: route('costcenters.index'),
+        },
+        {
+            title: "Mitarbeiter",
+            url: route('employees.index'),
+        },
+        // {
+        //   title: "Allgemein",
+        //   url: "#",
+        // },
+        // {
+        //   title: "Assets",
+        //   url: "#",
+        // },
         // {
         //   title: "Billing",
         //   url: "#",

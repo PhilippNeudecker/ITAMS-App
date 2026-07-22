@@ -18,19 +18,10 @@ import { Switch } from '@/components/ui/switch';
 
 export type TagModalMode = 'create' | 'edit' | 'view' | 'copy';
 
-interface TagRecord {
-    id: number;
-    business_code: string;
-    name: string;
-    description: string | null;
-    color: string | null;
-    is_active: boolean;
-}
-
 const props = defineProps<{
     open: boolean;
     mode: TagModalMode;
-    tag?: TagRecord | null;
+    tag?: any | null;
 }>();
 
 const emit = defineEmits<{
@@ -57,7 +48,7 @@ const descriptions: Record<TagModalMode, string> = {
 const form = useForm({
     business_code: '',
     name: '',
-    description: '' as string | null,
+    description: '',
     color: '#2563EB',
     is_active: true,
 });
@@ -135,13 +126,13 @@ function submit() {
 
 <template>
     <Dialog :open="open" @update:open="(v: boolean) => emit('update:open', v)">
-        <DialogContent class="sm:max-w-md">
+        <DialogContent class="sm:max-w-xl">
             <DialogHeader>
                 <DialogTitle>{{ titles[mode] }}</DialogTitle>
                 <DialogDescription>{{ descriptions[mode] }}</DialogDescription>
             </DialogHeader>
 
-            <div class="flex flex-col gap-4 py-2">
+            <div class="flex flex-col gap-4 py-2 max-h-[70vh] overflow-y-auto pr-1">
                 <div class="grid gap-2">
                     <Label for="tag-business-code">Businesscode</Label>
                     <Input id="tag-business-code" v-model="form.business_code" :disabled="isReadOnly" placeholder="z. B. IT" />

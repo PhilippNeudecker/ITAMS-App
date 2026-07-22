@@ -38,7 +38,7 @@ class AssetController extends Controller
             'assets'  => $query,
             'filters' => $request->only(['search', 'category_id', 'status_id', 'location_id']),
             'categories' => Category::orderBy('name')->get(),
-            'statuses'   => StatusDefinition::orderBy('name')->get(),
+            'statuses'   => StatusDefinition::orderBy('name')->where('module', '=', 'Asset')->get(),
             'locations'  => Location::orderBy('name')->get(),
         ]);
     }

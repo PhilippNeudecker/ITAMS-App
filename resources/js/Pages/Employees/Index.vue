@@ -5,11 +5,11 @@ import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import DataTable from "@/components/data-table/data-table.vue";
-import { buildColumns } from "@/Pages/AssetCategories/columns";
+import { buildColumns } from "@/Pages/Employees/columns";
 import { Separator } from '@/components/ui/separator';
-import { PlusIcon, SearchIcon, Trash2Icon, SlidersHorizontalIcon, FileSearchIcon, PenIcon, CopyIcon, RefreshCcwIcon } from 'lucide-vue-next';
+import { PlusIcon, SearchIcon, Trash2Icon, SlidersHorizontalIcon, FileSearchIcon, PenIcon, CopyIcon, RefreshCcwIcon, CloudDownloadIcon } from 'lucide-vue-next';
 import { route } from 'ziggy-js';
-import FormModal from '@/Pages/AssetCategories/CategoryFormModal.vue';
+import FormModal from '@/Pages/Employees/FormModal.vue';
 import GenericDeleteModal from '@/components/modals/GenericDeleteModal.vue';
 import { type Paginator } from '@/interfaces/Pagination';
 import { type ModalMode } from '@/interfaces/ModalMode';
@@ -18,6 +18,7 @@ const syncing = ref(false);
 
 const props = defineProps<{
     data: Paginator<any>;
+    costcenters: any[];
     filters: {
         search?: string;
         active_only?: boolean;
@@ -35,10 +36,10 @@ const onSearch = () => {
 };
 
 const applyFilters = () => {
-    router.get(route('assets.categories.index'), {
+    router.get(route('employees.index'), {
         search: search.value || undefined,
         active_only: activeOnly.value === 'active' || undefined,
-    }, { preserveState: true, replace: true, only: ['assets.categories', 'filters'] });
+    }, { preserveState: true, replace: true, only: ['employees', 'filters'] });
 };
 
 const resetFilters = () => {
@@ -120,12 +121,12 @@ function openDeleteModal(data: any[] = selectedDatas.value) {
 
     const inUse = data.filter(t => (t.assets_count ?? 0) > 0);
     if (inUse.length) {
-        alert(`Folgende Status Definitionen werden noch von Assets verwendet und können nicht gelöscht werden: ${inUse.map(t => t.name).join(', ')}`);
+        alert(`Folgende Kostenstellen werden noch von Assets verwendet und können nicht gelöscht werden: ${inUse.map(t => t.name).join(', ')}`);
         return;
     }
     deleteModalDescription = data.length === 1
         ? `Möchten Sie die Status Definition "${data[0].name}" wirklich löschen?`
-        : `Möchten Sie ${data.length} Status Definitionen wirklich löschen?`;
+        : `Möchten Sie ${data.length} Kostenstellen wirklich löschen?`;
 
     deleteModalOpen.value = true;
 }
@@ -134,18 +135,18 @@ function handleDeleteSuccess(datas: any[] = selectedDatas.value) {
     const ids = datas.map(t => t.id);
 
     if (ids.length === 1) {
-        router.delete(route('assets.categories.destroy', ids[0]), {
+        router.delete(route('employees.destroy', ids[0]), {
             preserveScroll: true,
             preserveState: true,
-            only: ['categories'],
+            only: ['employees'],
             onSuccess: () => selectedIds.value.delete(ids[0]),
         });
     } else {
-        router.delete(route('assets.categories.bulk-destroy'), {
+        router.delete(route('employees.bulk-destroy'), {
             data: { ids },
             preserveScroll: true,
             preserveState: true,
-            only: ['categories'],
+            only: ['employees'],
             onSuccess: () => { selectedIds.value = new Set(); },
         });
     }
@@ -167,11 +168,11 @@ const onCopy = (id?: number) => {
 };
 
 function onRowClick(row: any) {
-    openModal('view', row);
+    // openModal('view', row);
 }
 
 function afterSave() {
-    router.reload({ only: ['statusdefinitions'] });
+    router.reload({ only: ['employees'] });
 }
 
 function deleteOne(id: number) {
@@ -181,7 +182,7 @@ function deleteOne(id: number) {
 }
 
 const onRefresh = () => {
-    router.reload({ only: ['categories']});
+    router.reload({ only: ['employees', 'filters'] });
 };
 
 const columns = computed(() => buildColumns({
@@ -195,6 +196,17 @@ const columns = computed(() => buildColumns({
     onDelete: deleteOne,
 }));
 
+const onSyncLDAP = () => {
+    if (syncing.value) return;
+    syncing.value = true;
+    router.post(route('employees.sync-ldap'), {}, {
+        preserveScroll: true,
+        preserveState: true,
+        only: ['employees', 'flash'],
+        onFinish: () => { syncing.value = false; },
+    });
+};
+
 const onPageChange = (page: number) => {
     router.get(route('employees.index'), {
         page,
@@ -205,40 +217,23 @@ const onPageChange = (page: number) => {
         replace: true,
     })
 };
+
 </script>
 
 <template>
-    <DashboardLayout :breadcrumbs="[{ name: 'Assets', href: route('assets.index') }, { name: 'Kategorien', href: route('assets.categories.index') }]">
+    <DashboardLayout :breadcrumbs="[{ name: 'Mitarbeiter', href: route('employees.index') }]">
         <div class="flex flex-col gap-2 h-full min-h-0">
             <!-- Actions -->
             <div class="flex justify-between rounded-md border border-destructive/30 bg-destructive/5 px-4 py-2 shrink-0">
                 <div class="flex items-center gap-2">
-                    <Button variant="outline" class="text-green-500" @click="onCreate()">
-                        <PlusIcon class="w-4 h-4" />
-                        <!-- <div class="pe-1">Neu</div> -->
-                    </Button>
-                    <Separator orientation="vertical" />
-                    <Button variant="outline" class="text-gray-500" :disabled="!singleSelectedData" @click="onView()" title="Anzeigen">
-                        <FileSearchIcon class="w-4 h-4" />
-                        <!-- <div class="pe-1">Anzeigen</div> -->
-                    </Button>
-                    <Button variant="outline" class="text-gray-500" :disabled="!singleSelectedData" @click="onEdit()" title="Bearbeiten">
-                        <PenIcon class="w-4 h-4" />
-                        <!-- <div class="pe-1">Bearbeiten</div> -->
-                    </Button>
-                    <Button variant="outline" class="text-gray-500" :disabled="!singleSelectedData" @click="onCopy()" title="Kopieren">
-                        <CopyIcon class="w-4 h-4" />
-                        <!-- <div class="pe-1">Kopieren</div> -->
-                    </Button>
-                    <Separator orientation="vertical" />
-                    <Button variant="outline" class="text-red-500" :disabled="!selectedDatas.length" @click="openDeleteModal()" title="Löschen">
-                        <Trash2Icon class="w-4 h-4" />
-                        <!-- <div class="pe-1">Löschen</div> -->
-                    </Button>
-                    <Separator orientation="vertical" />
+                    <!-- Employees should be managed by dc not by this software -->
                     <Button variant="outline" class="text-gray-500" @click="onRefresh()" title="Aktualisieren" :disabled="isLoading">
                         <RefreshCcwIcon class="w-4 h-4" :class="{ 'animate-spin': isLoading }" />
-                        <!-- <div class="pe-1">Aktualisieren</div> -->
+                    </Button>
+                    <Separator orientation="vertical" />
+                    <Button variant="outline" class="text-blue-500" @click="onSyncLDAP()" :disabled="syncing" title="Mit LDAP synchronisieren">
+                        <CloudDownloadIcon class="w-4 h-4" :class="{ 'animate-pulse': syncing }" />
+                        <div class="pe-1">Sync with LDAP</div>
                     </Button>
                 </div>
                 <div class="flex gap-2 justify-end">
@@ -268,7 +263,6 @@ const onPageChange = (page: number) => {
             </div>
         </div>
 
-        <FormModal v-model:open="modalOpen" :mode="modalMode" :category="modalData" @saved="afterSave" />
-        <GenericDeleteModal v-model:open="deleteModalOpen" title="Kategorie löschen" :description=deleteModalDescription :data="selectedDatas" @success="handleDeleteSuccess()" />
+        <!-- <FormModal v-model:open="modalOpen" :mode="modalMode" :employee="modalEmployee" @saved="afterSave" /> --><!-- Change KST -->
     </DashboardLayout>
 </template>

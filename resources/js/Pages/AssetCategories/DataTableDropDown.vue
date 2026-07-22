@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MoreHorizontal, FileSearchIcon, PenIcon, CopyIcon, Trash2Icon } from 'lucide-vue-next';
+import { MoreHorizontal, FileSearchIcon, PenIcon, CopyIcon, Trash2Icon, FolderPlusIcon } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -16,12 +16,14 @@ const props = defineProps<{
         name: string;
         assets_count?: number;
     };
+    canAddChild: boolean;
 }>();
 
 const emit = defineEmits<{
     (e: 'view', id: number): void;
     (e: 'edit', id: number): void;
     (e: 'copy', id: number): void;
+    (e: 'addChild', id: number): void;
     (e: 'delete', id: number): void;
 }>();
 </script>
@@ -47,6 +49,10 @@ const emit = defineEmits<{
             <DropdownMenuItem @click="emit('copy', category.id)">
                 <CopyIcon class="w-4 h-4" />
                 Kopieren
+      </DropdownMenuItem>
+            <DropdownMenuItem v-if="canAddChild" @click="emit('addChild', category.id)">
+                <FolderPlusIcon class="w-4 h-4" />
+                Unterkategorie hinzufügen
       </DropdownMenuItem>
       <DropdownMenuSeparator />
             <DropdownMenuItem class="text-destructive" @click="emit('delete', category.id)">
